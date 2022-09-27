@@ -1,29 +1,19 @@
+import { useState, useEffect } from "react";
 import "./App.css";
+import PrimaryButton from "./components/PrimaryButton";
 import ShuffleCards from "./components/ShuffleCards";
 
 function App() {
+  function reload() {
+    window.location.reload(false);
+  }
   return (
     <div className="App">
       <header className="App-header">Black Jack Game</header>
-
-      {
-        <div>
-          <h2>
-            Dealer: <span id="dealer-sum"></span>
-          </h2>
-          <div id="dealer-cards">
-            <div id="hidden">Hidden card</div>
-          </div>
-
-          <h2>
-            You: <span id="your-sum"></span>
-          </h2>
-        </div>
-      }
-      <div id="your-cards"></div>
-
+      <hr />
+      <PrimaryButton disableBtn={false} text={"reload"} onClick={reload} />
+      <hr />
       <ShuffleCards />
-      <p id="results"></p>
     </div>
   );
 }

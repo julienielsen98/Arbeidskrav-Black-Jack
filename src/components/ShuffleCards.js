@@ -1,18 +1,19 @@
-import HitButton from "./HitButton";
-import StayButton from "./StayButton";
+import PrimaryButton from "./PrimaryButton";
+
+import { useEffect, useState } from "react";
 
 const ShuffleCards = () => {
-  var dealerSum = 0;
-  var yourSum = 0;
+  let [yourSum, setYourSum] = useState(0);
+  let [dealerSum, setDealerSum] = useState(0);
 
   var dealerAceCount = 0;
   var yourAceCount = 0;
 
-  var hidden;
+  let [hidden, setHidden] = useState(null);
+
   var deck;
 
-  var canHit = true; //allows the player (you) to draw while yourSum <= 21
-
+  var canHit = true;
   window.onload = function () {
     buildDeck();
     shuffleDeck();
@@ -55,7 +56,7 @@ const ShuffleCards = () => {
     console.log(deck);
   }
 
-  function startGame() {
+  const startGame = () => {
     hidden = deck.pop();
     dealerSum += getValue(hidden);
     dealerAceCount += checkAce(hidden);
@@ -67,7 +68,6 @@ const ShuffleCards = () => {
       dealerSum += getValue(card);
       dealerAceCount += checkAce(card);
       document.getElementById("dealer-cards").append(cardImg);
-      console.log(cardImg);
     }
     console.log(dealerSum);
 
@@ -79,7 +79,7 @@ const ShuffleCards = () => {
       yourAceCount += checkAce(card);
       document.getElementById("your-cards").append(cardImg);
     }
-  }
+  };
 
   function hit() {
     if (!canHit) {
@@ -98,31 +98,28 @@ const ShuffleCards = () => {
     }
   }
 
+  const [message, setMessage] = useState("");
+
   function stay() {
-    dealerSum = reduceAce(dealerSum, dealerAceCount);
-    yourSum = reduceAce(yourSum, yourAceCount);
+    setDealerSum(reduceAce(dealerSum, dealerAceCount));
+    setYourSum(reduceAce(yourSum, yourAceCount));
 
     canHit = false;
-    document.getElementById("hidden").innerHTML = ` ${hidden}`;
+    setHidden(hidden);
 
-    let message = "";
     if (dealerSum > 21 && yourSum > 21) {
-      message = "Both Loses!";
+      setMessage("Both Loses!");
     } else if (dealerSum > 21) {
-      message = "You win!";
+      setMessage("You Win!");
     } else if (yourSum > 21) {
-      message = " You lose!";
+      setMessage(" You Lost!");
     } else if (yourSum === dealerSum) {
-      message = "Tie!";
+      setMessage("Tie!");
     } else if (yourSum > dealerSum) {
-      message = "You Win!";
+      setMessage("You Win!");
     } else if (yourSum < dealerSum) {
-      message = "You Lose!";
+      setMessage("You Lost!");
     }
-
-    document.getElementById("dealer-sum").innerText = dealerSum;
-    document.getElementById("your-sum").innerText = yourSum;
-    document.getElementById("results").innerText = message;
 
     console.log(yourSum);
   }
@@ -155,10 +152,74 @@ const ShuffleCards = () => {
     return playerSum;
   }
 
+  const [highScore, setHighScore] = useState(0);
+  const [topTenList, setTopTenList] = useState(0);
+
+  useEffect(() => {
+    let newScore = 0;
+    if (message === "You Win!" || message === "Tie!") {
+      setHighScore((newScore += highScore + yourSum));
+      console.log(highScore);
+      console.log(newScore);
+    }
+    if (message === "Both Loses!" || message === "You Lost!") {
+      setHighScore(0);
+      setMessage(`You lost, your total score this round was ${highScore}`);
+
+      if (highScore > topTenList) {
+        setTopTenList(highScore);
+      }
+    }
+  }, [yourSum]);
+
+  const LOCAL_STORAGE_KEY = `Blackjack.app`;
+  const SESSION_STORAGE_KEY = `Blackjack1.app`;
+
+  useEffect(() => {
+    const storedHighscore = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if (storedHighscore) setHighScore(storedHighscore);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(highScore));
+  }, [highScore]);
+
+  useEffect(() => {
+    const storedTopTen = JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEY)
+    );
+    if (storedTopTen) setTopTenList(storedTopTen);
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(topTenList));
+  }, [topTenList]);
+
   return (
     <div>
-      <HitButton disableBtn={false} text={"Hit"} onClick={hit} />
-      <StayButton disableBtn={false} text={"Stay"} onClick={stay} />
+      <div id="dealer-cards">
+        <h1 id="dealer-sum">Dealer: {dealerSum}</h1>
+        <div id="hidden">
+          Hidden Card: {<br />}
+          {hidden}
+        </div>
+      </div>
+      <hr />
+      <div id="your-cards">
+        <h1 id="your-sum">You: {yourSum}</h1>
+      </div>
+
+      <PrimaryButton disableBtn={false} text={"Hit"} onClick={hit} />
+      <PrimaryButton disableBtn={false} text={"Stay"} onClick={stay} />
+
+      <p id="results">{message}</p>
+
+      <p id="highscore">Your highScore: {highScore}</p>
+      <hr />
+      <ul id="TOP 10:">
+        TOP 10:
+        <li>{topTenList}</li>
+      </ul>
     </div>
   );
 };

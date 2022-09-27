@@ -1,4 +1,4 @@
-const HitButton = (props) => {
+const PrimaryButton = (props) => {
   const { disableBtn, text } = props;
 
   return (
@@ -9,4 +9,4 @@ const HitButton = (props) => {
   );
 };
 
-export default HitButton;
+export default PrimaryButton;
