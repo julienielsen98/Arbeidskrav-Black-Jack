@@ -62,22 +62,22 @@ const ShuffleCards = () => {
     dealerAceCount += checkAce(hidden);
 
     while (dealerSum < 17) {
-      let cardImg = document.createElement("div");
+      let cardContainer = document.createElement("div");
       let card = deck.pop();
-      cardImg.innerHTML = ` ${card}`;
+      cardContainer.innerHTML = ` ${card}`;
       dealerSum += getValue(card);
       dealerAceCount += checkAce(card);
-      document.getElementById("dealer-cards").append(cardImg);
+      document.getElementById("dealer-cards").append(cardContainer);
     }
-    console.log(`Dealer sum: ${dealerSum}`);
+    console.log(dealerSum);
 
     for (let i = 0; i < 2; i++) {
-      let cardImg = document.createElement("div");
+      let cardContainer = document.createElement("div");
       let card = deck.pop();
-      cardImg.innerHTML = ` ${card}`;
+      cardContainer.innerHTML = ` ${card}`;
       yourSum += getValue(card);
       yourAceCount += checkAce(card);
-      document.getElementById("your-cards").append(cardImg);
+      document.getElementById("your-cards").append(cardContainer);
     }
   };
 
@@ -86,12 +86,12 @@ const ShuffleCards = () => {
       return;
     }
 
-    let cardImg = document.createElement("div");
+    let cardContainer = document.createElement("div");
     let card = deck.pop();
-    cardImg.innerHTML = ` ${card}`;
+    cardContainer.innerHTML = ` ${card}`;
     yourSum += getValue(card);
     yourAceCount += checkAce(card);
-    document.getElementById("your-cards").append(cardImg);
+    document.getElementById("your-cards").append(cardContainer);
 
     if (reduceAce(yourSum, yourAceCount) > 21) {
       canHit = false;
@@ -109,13 +109,13 @@ const ShuffleCards = () => {
 
     if (dealerSum > 21 && yourSum > 21) {
       setMessage(
-        `Both loses, your total score this round was ${highScore} points`
+        `Both loses, your total score this round was ${yourScore} points`
       );
     } else if (dealerSum > 21) {
       setMessage("You Win!");
     } else if (yourSum > 21) {
       setMessage(
-        `You lost, your total score this round was ${highScore} points`
+        `You lost, your total score this round was ${yourScore} points`
       );
     } else if (yourSum === dealerSum) {
       setMessage("Tie!");
@@ -123,7 +123,7 @@ const ShuffleCards = () => {
       setMessage("You Win!");
     } else if (yourSum < dealerSum) {
       setMessage(
-        `You lost, your total score this round was ${highScore} points`
+        `You lost, your total score this round was ${yourScore} points`
       );
     }
 
@@ -158,56 +158,50 @@ const ShuffleCards = () => {
     return playerSum;
   }
 
-  const [highScore, setHighScore] = useState(0);
-  const [topTenList, setTopTenList] = useState([0]);
-
-  useEffect(
-    (e) => {
-      let newScore = 0;
-      if (message === "You Win!" || message === "Tie!") {
-        setHighScore((newScore += yourSum + highScore));
-        console.log(highScore);
-        console.log(newScore);
-      }
-      if (
-        message ===
-          `Both loses, your total score this round was ${highScore} points` ||
-        message ===
-          `You lost, your total score this round was ${highScore} points`
-      )
-        setHighScore(0);
-      {
-        if (highScore > topTenList[0]) {
-          setTopTenList((prevList) => [highScore, ...prevList]);
-        }
-      }
-    },
-    [yourSum]
-  );
-
-  const LOCAL_STORAGE_KEY1 = `HIGHSCORE VALUES`;
-  const LOCAL_STORAGE_KEY2 = `TOP TEN SCORE VALUES`;
+  const [yourScore, setScore] = useState(0);
+  const [highScore, setHighscore] = useState(0);
 
   useEffect(() => {
-    const storedHighscore = JSON.parse(
-      sessionStorage.getItem(LOCAL_STORAGE_KEY1)
+    let newScore = 0;
+    if (message === "You Win!" || message === "Tie!") {
+      setScore((newScore += yourScore + yourSum));
+    }
+    if (
+      message ===
+        `Both loses, your total score this round was ${yourScore} points` ||
+      message ===
+        `You lost, your total score this round was ${yourScore} points`
+    ) {
+      setScore(0);
+
+      if (yourScore > highScore) {
+        setHighscore(yourScore);
+      }
+    }
+  }, [yourSum]);
+
+  const LOCAL_STORAGE_KEY = `Blackjack.app`;
+  const SESSION_STORAGE_KEY = `Blackjack1.app`;
+
+  useEffect(() => {
+    const storedHighscore = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if (storedHighscore) setScore(storedHighscore);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(yourScore));
+  }, [yourScore]);
+
+  useEffect(() => {
+    const storedTopTen = JSON.parse(
+      sessionStorage.getItem(SESSION_STORAGE_KEY)
     );
-    if (storedHighscore) setHighScore(storedHighscore);
+    if (storedTopTen) setHighscore(storedTopTen);
   }, []);
 
   useEffect(() => {
-    sessionStorage.setItem(LOCAL_STORAGE_KEY1, JSON.stringify(highScore));
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(highScore));
   }, [highScore]);
-
-  useEffect(() => {
-    const storedTopTen = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY2));
-    if (storedTopTen) setTopTenList(storedTopTen);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY2, JSON.stringify(topTenList));
-    console.log(`TopTenList:${topTenList}`);
-  }, [topTenList]);
 
   return (
     <div>
@@ -222,24 +216,19 @@ const ShuffleCards = () => {
           {hidden}
         </div>
       </div>
-      <h1 id="results">{message}</h1>
-      <br />
+
+      <h1 id="results">{message} </h1>
+
       <h2 id="your-sum">You: {yourSum}</h2>
       <div id="your-cards"></div>
       <h2>Score:</h2>
-      <p id="highscore">{highScore}. points</p>
+      <p id="score">{yourScore}. points</p>
       <br />
       <hr />
 
-      <div id="TOP-10">
-        <h1>Highest Score:</h1>
-        <ol>
-          <li>
-            {topTenList.map((item, i) => (
-              <p key={i}>{item}. points</p>
-            ))}
-          </li>
-        </ol>
+      <div id="Highscore">
+        <h1>Your Highest Score:</h1>
+        <h2> {highScore}. points</h2>
       </div>
     </div>
   );
