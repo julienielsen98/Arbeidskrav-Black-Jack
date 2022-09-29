@@ -1,5 +1,5 @@
 import PrimaryButton from "./PrimaryButton";
-
+import "../App.css";
 import { useEffect, useState } from "react";
 
 const ShuffleCards = () => {
@@ -36,12 +36,12 @@ const ShuffleCards = () => {
       "Q",
       "K",
     ];
-    let types = ["C", "D", "H", "S"];
+    let types = ["♦️", "♥️", "♣️", "♠️"];
     deck = [];
 
     for (let i = 0; i < types.length; i++) {
       for (let j = 0; j < values.length; j++) {
-        deck.push(values[j] + "-" + types[i]);
+        deck.push(values[j] + `` + types[i]);
       }
     }
   }
@@ -69,7 +69,7 @@ const ShuffleCards = () => {
       dealerAceCount += checkAce(card);
       document.getElementById("dealer-cards").append(cardImg);
     }
-    console.log(dealerSum);
+    console.log(`Dealer sum: ${dealerSum}`);
 
     for (let i = 0; i < 2; i++) {
       let cardImg = document.createElement("div");
@@ -108,24 +108,30 @@ const ShuffleCards = () => {
     setHidden(hidden);
 
     if (dealerSum > 21 && yourSum > 21) {
-      setMessage("Both Loses!");
+      setMessage(
+        `Both loses, your total score this round was ${highScore} points`
+      );
     } else if (dealerSum > 21) {
       setMessage("You Win!");
     } else if (yourSum > 21) {
-      setMessage(" You Lost!");
+      setMessage(
+        `You lost, your total score this round was ${highScore} points`
+      );
     } else if (yourSum === dealerSum) {
       setMessage("Tie!");
     } else if (yourSum > dealerSum) {
       setMessage("You Win!");
     } else if (yourSum < dealerSum) {
-      setMessage("You Lost!");
+      setMessage(
+        `You lost, your total score this round was ${highScore} points`
+      );
     }
 
     console.log(yourSum);
   }
 
   function getValue(card) {
-    let data = card.split("-");
+    let data = card.split("");
     let value = data[0];
 
     if (isNaN(value)) {
@@ -153,73 +159,88 @@ const ShuffleCards = () => {
   }
 
   const [highScore, setHighScore] = useState(0);
-  const [topTenList, setTopTenList] = useState(0);
+  const [topTenList, setTopTenList] = useState([0]);
 
-  useEffect(() => {
-    let newScore = 0;
-    if (message === "You Win!" || message === "Tie!") {
-      setHighScore((newScore += highScore + yourSum));
-      console.log(highScore);
-      console.log(newScore);
-    }
-    if (message === "Both Loses!" || message === "You Lost!") {
-      setHighScore(0);
-      setMessage(`You lost, your total score this round was ${highScore}`);
-
-      if (highScore > topTenList) {
-        setTopTenList(highScore);
+  useEffect(
+    (e) => {
+      let newScore = 0;
+      if (message === "You Win!" || message === "Tie!") {
+        setHighScore((newScore += yourSum + highScore));
+        console.log(highScore);
+        console.log(newScore);
       }
-    }
-  }, [yourSum]);
+      if (
+        message ===
+          `Both loses, your total score this round was ${highScore} points` ||
+        message ===
+          `You lost, your total score this round was ${highScore} points`
+      )
+        setHighScore(0);
+      {
+        if (highScore > topTenList[0]) {
+          setTopTenList((prevList) => [highScore, ...prevList]);
+        }
+      }
+    },
+    [yourSum]
+  );
 
-  const LOCAL_STORAGE_KEY = `Blackjack.app`;
-  const SESSION_STORAGE_KEY = `Blackjack1.app`;
+  const LOCAL_STORAGE_KEY1 = `HIGHSCORE VALUES`;
+  const LOCAL_STORAGE_KEY2 = `TOP TEN SCORE VALUES`;
 
   useEffect(() => {
-    const storedHighscore = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    const storedHighscore = JSON.parse(
+      sessionStorage.getItem(LOCAL_STORAGE_KEY1)
+    );
     if (storedHighscore) setHighScore(storedHighscore);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(highScore));
+    sessionStorage.setItem(LOCAL_STORAGE_KEY1, JSON.stringify(highScore));
   }, [highScore]);
 
   useEffect(() => {
-    const storedTopTen = JSON.parse(
-      sessionStorage.getItem(SESSION_STORAGE_KEY)
-    );
+    const storedTopTen = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY2));
     if (storedTopTen) setTopTenList(storedTopTen);
   }, []);
 
   useEffect(() => {
-    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(topTenList));
+    localStorage.setItem(LOCAL_STORAGE_KEY2, JSON.stringify(topTenList));
+    console.log(`TopTenList:${topTenList}`);
   }, [topTenList]);
 
   return (
     <div>
+      <div id="hitNstay">
+        <PrimaryButton disableBtn={false} text={"Hit"} onClick={hit} />
+        <PrimaryButton disableBtn={false} text={"Stay"} onClick={stay} />
+      </div>
+      <h2 id="dealer-sum">Dealer: {dealerSum}</h2>
       <div id="dealer-cards">
-        <h1 id="dealer-sum">Dealer: {dealerSum}</h1>
         <div id="hidden">
-          Hidden Card: {<br />}
+          <p id="hidden-tag">{hidden != null ? null : "Hidden Card"}</p>
           {hidden}
         </div>
       </div>
+      <h1 id="results">{message}</h1>
+      <br />
+      <h2 id="your-sum">You: {yourSum}</h2>
+      <div id="your-cards"></div>
+      <h2>Score:</h2>
+      <p id="highscore">{highScore}. points</p>
+      <br />
       <hr />
-      <div id="your-cards">
-        <h1 id="your-sum">You: {yourSum}</h1>
+
+      <div id="TOP-10">
+        <h1>Highest Score:</h1>
+        <ol>
+          <li>
+            {topTenList.map((item, i) => (
+              <p key={i}>{item}. points</p>
+            ))}
+          </li>
+        </ol>
       </div>
-
-      <PrimaryButton disableBtn={false} text={"Hit"} onClick={hit} />
-      <PrimaryButton disableBtn={false} text={"Stay"} onClick={stay} />
-
-      <p id="results">{message}</p>
-
-      <p id="highscore">Your highScore: {highScore}</p>
-      <hr />
-      <ul id="TOP 10:">
-        TOP 10:
-        <li>{topTenList}</li>
-      </ul>
     </div>
   );
 };

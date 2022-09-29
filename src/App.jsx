@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import "./App.css";
 import PrimaryButton from "./components/PrimaryButton";
 import ShuffleCards from "./components/ShuffleCards";
@@ -9,11 +8,17 @@ function App() {
   }
   return (
     <div className="App">
-      <header className="App-header">Black Jack Game</header>
-      <hr />
-      <PrimaryButton disableBtn={false} text={"reload"} onClick={reload} />
-      <hr />
-      <ShuffleCards />
+      <header className="App-header">BLACKJACK</header>
+
+      <PrimaryButton
+        className="reload-button"
+        disableBtn={false}
+        text={"Restart"}
+        onClick={reload}
+      />
+      <div className="cards-container">
+        <ShuffleCards />
+      </div>
     </div>
   );
 }
