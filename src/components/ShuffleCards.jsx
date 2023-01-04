@@ -138,7 +138,15 @@ const ShuffleCards = () => {
       if (value === "A") {
         return 11;
       }
-      return 10;
+      if (value === "K" || "Q" || "J") {
+        return 10;
+      }
+      if (value === "10") {
+        return 10;
+      }
+      if (value === "9") {
+        return 9;
+      }
     }
     return parseInt(value);
   }
